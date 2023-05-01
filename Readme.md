@@ -112,3 +112,46 @@ To select a winner, call the "selectWinner" function using the "Transact" button
 ## Step 7: Conclusion
 
 In this blog, we have discussed how to create a simple lottery system in Solidity using Remix IDE. Our lottery system is fair and transparent, and it allows anyone to participate by sending ether to the contract. The contract manager is the only person who can select a winner, ensuring that the lottery is conducted in a secure and trustworthy manner.
+
+## Smart Contract Code for Ethereum Lottery:-
+
+```
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >= 0.5.0 < 0.9.0;
+
+contract Lottery {
+
+    address public manager;
+    address payable[] public participants;
+
+    constructor(){
+        manager = msg.sender;
+    }
+
+    receive() external payable {
+        require(msg.value == 1 ether, "Exactly 1 ether is required to participate in this Lottery");
+        participants.push(payable(msg.sender));
+    }
+
+    function getBalance() public view returns (uint){
+        require(msg.sender == manager, "You don't have access to it.");
+        return address(this).balance;
+    }
+
+    function random() public view returns (uint){
+        return uint(keccak256(abi.encode(block.prevhash, block.timestamp, participants.length)));
+    }
+
+    function selectWinner() public{
+        require(msg.sender == manager, "Only the manager can select a winner.");
+        require(participants.length > 0, "No participants in the Lottery.");
+
+        uint index = random() % participants.length;
+        address payable winner = participants[index];
+        winner.transfer(getBalance());
+        participants = new address payable[](0);
+    }
+}
+
+```
